@@ -7,23 +7,21 @@
 #define YY_DECL int yylex()
 
 int words = 0;
-int chars = 0;  // Character count per line
-int lines = 0;  // Line number tracker
+int chars = 0;
+int lines = 0;
 
 %}
 
-//These are regex patterns used as macros in the rules section.
-
 letter      [a-zA-Z]
 digit       [0-9]
-ID          {letter}({letter}|{digit})* //starts with letter, followed by letters/digits
+ID          {letter}({letter}|{digit})*
+TYPE        int|void|float|char|double|long|short
 delim       [ \t\n]
-NUMBER         {digit}+(\.{digit}+)?(E[+\-]?(digit)+)?
+NUMBER      {digit}+(\.{digit}+)?(E[+\-]?{digit}+)?
+KEYWORD     if|else|while|for|write|writeln|read|return|break
 ws          {delim}+
 
 %%
-//Rules Section based on regex patterns
-
 "/*"    				{
 							int c;
 							while((c = input()) != 0) {
@@ -35,36 +33,97 @@ ws          {delim}+
 								}
 							}
 						}
-/* --------- KEYWORDS --------- */
 						
-"int"	{words++; chars += strlen(yytext);
-		 printf("%s : TYPE\n", yytext);
+
+{TYPE} {
+    words++; chars += strlen(yytext);
+    printf("%s : TYPE\n", yytext);
+}
+{KEYWORD} {words++;
+           chars += strlen(yytext);
+           printf("%s : KEYWORD\n", yytext);
+        }
+
+"("     {words++; chars += strlen(yytext);
+         printf("%s : OPEN PARENTHESIS\n",yytext);
+        }
+")"     {words++; chars += strlen(yytext);
+         printf("%s : CLOSED PARENTHESIS\n",yytext);
+        }
+"["     {words++; chars += strlen(yytext);
+         printf("%s : OPEN SQUARE BRACKET\n",yytext);
+        }
+"]"     {words++; chars += strlen(yytext);
+         printf("%s : CLOSED SQUARE BRACKET\n",yytext);
+        }
+"=="     {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"!="     {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+">="     {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"<="     {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+">"      {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"<"      {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"&&"     {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"||"     {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"+"      {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"-"      {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"*"      {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"/"      {words++; chars += strlen(yytext);
+         printf("%s : BINARY OPERATION\n",yytext);
+        }
+"++"      {words++; chars += strlen(yytext);
+         printf("%s : UNARY OPERATION\n",yytext);
+        }
+"--"      {words++; chars += strlen(yytext);
+         printf("%s : UNARY OPERATION\n",yytext);
+        }
+"!"     {words++; chars += strlen(yytext);
+         printf("%s : UNARY OPERATION\n",yytext);
+        }
+"{"      {words++; chars += strlen(yytext);
+		 printf("%s : OPEN BRACKET\n",yytext);
+		}
+"}"      {words++; chars += strlen(yytext);
+		 printf("%s : CLOSE BRACKET\n",yytext);
+		}
+","      {words++; chars += strlen(yytext);
+		 printf("%s : SEPARATOR\n",yytext);
 		}
 
-"char"	{words++; chars += strlen(yytext);
-		 printf("%s : TYPE\n", yytext);
-		}
-		
-"write"	{words++; 
-		 chars += strlen(yytext);
-		 printf("%s : KEYWORD\n", yytext);
-		}
-		
 {ID}	{words++; chars += strlen(yytext);
 		 printf("%s : IDENTIFIER\n",yytext);
 		}
+
 			
 {NUMBER}	{words++; chars += strlen(yytext);
 			  printf("%s : NUMBER\n",yytext);
 			}
 			
-";"		{chars++;
-		 printf("%s : SEMICOLON\n", yytext);
-		}
-		
-"="		{chars++;
-		 printf("%s : EQ\n", yytext);
-		}
+";" {words++; chars++; printf("%s : SEMICOLON\n", yytext);}
+
+"=" {words++; chars++; printf("%s : EQ\n", yytext);}
+
 		
 
 \n		{lines++; chars=0;}
@@ -74,7 +133,6 @@ ws          {delim}+
 		}
 		
 
-//Main function to start the lexer and read input from a file.
 
 %%
 int main(int argc, char**argv)
@@ -93,4 +151,10 @@ int main(int argc, char**argv)
 	  }
 	}
 	yylex();
+	return 0;
+
 }
+
+
+
+    
