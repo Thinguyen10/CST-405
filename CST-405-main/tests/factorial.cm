@@ -1,0 +1,26 @@
+/* 
+ * Factorial program in C-Minus
+ * Demonstrates: functions, recursion, if-else
+ */
+
+int factorial(int n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+void main(void) {
+    int num;
+    int result;
+    
+    /* Input a number */
+    num = input();
+    
+    /* Calculate factorial */
+    result = factorial(num);
+    
+    /* Output result */
+    output(result);
+}

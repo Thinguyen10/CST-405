@@ -1,0 +1,31 @@
+/*
+ * Fibonacci sequence in C-Minus
+ * Demonstrates: while loops, arrays
+ */
+
+void main(void) {
+    int n;
+    int i;
+    int fib[20];
+    
+    /* Get number of terms */
+    n = input();
+    
+    /* Initialize first two terms */
+    fib[0] = 0;
+    fib[1] = 1;
+    
+    /* Calculate Fibonacci sequence */
+    i = 2;
+    while (i < n) {
+        fib[i] = fib[i-1] + fib[i-2];
+        i = i + 1;
+    }
+    
+    /* Output the sequence */
+    i = 0;
+    while (i < n) {
+        output(fib[i]);
+        i = i + 1;
+    }
+}

@@ -1,0 +1,32 @@
+/*
+ * Greatest Common Divisor (Euclidean algorithm)
+ * Demonstrates: while loops, modulo operation alternative
+ */
+
+int gcd(int a, int b) {
+    int temp;
+    
+    while (b != 0) {
+        temp = b;
+        b = a - (a / b) * b;  /* modulo using division */
+        a = temp;
+    }
+    
+    return a;
+}
+
+void main(void) {
+    int x;
+    int y;
+    int result;
+    
+    /* Input two numbers */
+    x = input();
+    y = input();
+    
+    /* Calculate GCD */
+    result = gcd(x, y);
+    
+    /* Output result */
+    output(result);
+}
