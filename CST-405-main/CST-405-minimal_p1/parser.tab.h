@@ -41,35 +41,47 @@
    enum yytokentype {
      NUM = 258,
      ID = 259,
-     INT = 260,
-     PRINT = 261,
-     TYPE = 262,
-     KEYWORD = 263,
-     EQ = 264,
-     NEQ = 265,
-     GE = 266,
-     LE = 267,
-     AND = 268,
-     OR = 269,
-     INC = 270,
-     DEC = 271
+     PRINT = 260,
+     TYPE = 261,
+     KEYWORD = 262,
+     IF = 263,
+     ELSE = 264,
+     WHILE = 265,
+     FOR = 266,
+     RETURN = 267,
+     BREAK = 268,
+     EQ = 269,
+     NEQ = 270,
+     GE = 271,
+     LE = 272,
+     AND = 273,
+     OR = 274,
+     INC = 275,
+     DEC = 276,
+     UMINUS = 277
    };
 #endif
 /* Tokens.  */
 #define NUM 258
 #define ID 259
-#define INT 260
-#define PRINT 261
-#define TYPE 262
-#define KEYWORD 263
-#define EQ 264
-#define NEQ 265
-#define GE 266
-#define LE 267
-#define AND 268
-#define OR 269
-#define INC 270
-#define DEC 271
+#define PRINT 260
+#define TYPE 261
+#define KEYWORD 262
+#define IF 263
+#define ELSE 264
+#define WHILE 265
+#define FOR 266
+#define RETURN 267
+#define BREAK 268
+#define EQ 269
+#define NEQ 270
+#define GE 271
+#define LE 272
+#define AND 273
+#define OR 274
+#define INC 275
+#define DEC 276
+#define UMINUS 277
 
 
 
@@ -78,12 +90,12 @@
 typedef union YYSTYPE
 #line 27 "parser.y"
 {
-    int num;                /* For integer literals */
+    double num;                /* Thi added - For numeric (float) literals */
     char* str;              /* For identifiers */
-    struct ASTNode* node;   /* For AST nodes */
+    struct ASTNode* node;   /* For AST nodes (statements, expressions, types, etc.) */
 }
 /* Line 1529 of yacc.c.  */
-#line 87 "parser.tab.h"
+#line 99 "parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -1,5 +1,5 @@
 
-//a script built from bison by make command
+/* a script built from bison by make command */
 %{
 /* SYNTAX ANALYZER (PARSER)
  * This is the second phase of compilation - checking grammar rules
@@ -33,17 +33,15 @@ ASTNode* root = NULL;          /* Root of the Abstract Syntax Tree */
 /* TOKEN DECLARATIONS with their semantic value types */
 %token <num> NUM  /* numeric literals */
 %token <str> ID
-%token <node> PRINT TYPE
-%token KEYWORD     /* Thi added */
+%token PRINT TYPE KEYWORD     /* Thi added all */
+%token IF ELSE WHILE FOR RETURN BREAK
 %token EQ NEQ GE LE AND OR INC DEC  /* Thi added */
 
-/* punctuation/operators returned as character tokens in lexer */
-%token '<' '>' /* explicit so we can refer to them in precedence */
-%token '+' '-' '*' '/' '(' ')' '{' '}' '[' ']' ';' ',' '=' '!'
 
 /* Nonterminal semantic types */
 %type <node> program stmt_list stmt decl assign expr print_stmt
 %type <node> if_stmt while_stmt for_stmt return_stmt block expr_list
+%type <node> for_init for_cond for_update
 
 
 /* DEFINE OPERATOR PRECEDENCE 
@@ -61,10 +59,12 @@ Ex: * over + -
 /* start symbol */
 %start program
 
+%% 
+
 /* GRAMMAR RULES - Define the structure of our language */
 /* Goes from program -> stmt list -> stmt -> decl -> assign -> expr */
 
-/* PROGRAM RULE - Entry point of our grammar */
+/* PROGRAM RULE - Entry point of our grammar*/
 program:
     stmt_list { 
         /* Action: Save the statement list as our AST root */
@@ -105,7 +105,7 @@ block:
 decl:
     TYPE ID ';' { 
         /* Create declaration node and free the identifier string */
-        $$ = createDecl($2);  /* $2 is token #2, meaning take ID */
+        $$ = createDecl($2, NULL);  /* $2 is token #2, meaning take ID */
         free($2);             /* And free the string copy ID from scanner */
     }
     |
@@ -135,10 +135,10 @@ expr:
         $$ = createVar($1);  /* $1 is char*/
         free($1);            /* Free the identifier string */
     }
-    | expr '+' expr { $$ = createBinOp('+', $1, $3);  }
-    | expr '-' expr { $$ = createBinOp('-', $1, $3);  } /* Thi added all */
-    | expr '*' expr { $$ = createBinOp('*', $1, $3);  }
-    | expr '/' expr { $$ = createBinOp('/', $1, $3);  }
+    | expr '+' expr { $$ = createBinOp("+", $1, $3);  }
+    | expr '-' expr { $$ = createBinOp("-", $1, $3);  } /* Thi added all */
+    | expr '*' expr { $$ = createBinOp("*", $1, $3);  }
+    | expr '/' expr { $$ = createBinOp("/", $1, $3);  }
     | expr EQ expr  { $$ = createBinOp("==", $1, $3); }  /* EQ from lexer ("==") */
     | expr NEQ expr { $$ = createBinOp("!=", $1, $3); }  /* NEQ from lexer ("!=") */
     | expr GE expr  { $$ = createBinOp(">=", $1, $3); }  /* GE from lexer (">=") */
@@ -158,7 +158,7 @@ expr_list:
     }
     |
     expr_list ',' expr {
-        $$ = createExprList($1, $3);
+        $$ = addToExprList($1, $3);
     }
 
 
@@ -169,7 +169,6 @@ print_stmt:
         $$ = createPrint($3);  /* $3 is the expression inside parens */
     }
     ;
-
 
 
 /* IF statement: supports optional ELSE
@@ -194,15 +193,27 @@ while_stmt:
 
 /* FOR statement: simple C-style for(init; cond; update) { body } */
 for_stmt:
-    FOR '(' /* allow empty init/cond/update */
-        ( decl | assign | ';' ) /* init: either a declaration, assignment, or empty-expression ';' */
-        expr? ';' expr? ')' block
-    {
-        /* This is a simplified placeholder: you will probably want to split init/cond/update
-           into separate nonterminals and build a proper AST node. */
-        $$ = createFor(NULL, NULL, NULL, $8); /* adapt as per your AST helpers */
+    FOR '(' for_init for_cond ';' for_update ')' block {
+        $$ = createFor($3, $4, $6, $8);
     }
     ;
+
+for_init:
+    decl
+    | assign
+    | ';'   { $$ = NULL; }
+    ;
+
+for_cond:
+    expr    { $$ = $1; }
+    | /* empty */ { $$ = NULL; }
+    ;
+
+for_update:
+    expr    { $$ = $1; }
+    | /* empty */ { $$ = NULL; }
+    ;
+
 
 /* RETURN statement */
 return_stmt:
