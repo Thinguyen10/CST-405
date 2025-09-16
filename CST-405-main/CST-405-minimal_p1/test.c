@@ -1,14 +1,9 @@
-int x;
-int y;
-int z;
+int i;
+int sum;
 
-x = 10;
-y = 20;
-z = x + y;
-print(z);
+sum = 0;
+for (i = 0; i < 5; i = i + 1) {
+    sum = sum + i;
+}
 
-x = z + 5;
-print(x);
-
-y = x + y + z;
-print(y);
+print(sum);

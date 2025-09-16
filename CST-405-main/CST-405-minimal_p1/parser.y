@@ -39,7 +39,7 @@ ASTNode* root = NULL;          /* Root of the Abstract Syntax Tree */
 
 
 /* Nonterminal semantic types */
-%type <node> program stmt_list stmt decl assign expr print_stmt
+%type <node> program stmt_list stmt decl assign expr  assign_expr print_stmt
 %type <node> if_stmt while_stmt for_stmt return_stmt block expr_list
 %type <node> for_init for_cond for_update
 
@@ -112,6 +112,14 @@ decl:
     TYPE ID '=' expr ';' { /* Thi added */
         $$ = createDecl($2, $4);  
         free($2);    
+    }
+    ;
+
+/* Assignment expression (NO ;) for for-loops */
+assign_expr:
+    ID '=' expr {
+        $$ = createAssign($1, $3);  /* Reuse the same AST constructor */
+        free($1);
     }
     ;
 
@@ -193,15 +201,15 @@ while_stmt:
 
 /* FOR statement: simple C-style for(init; cond; update) { body } */
 for_stmt:
-    FOR '(' for_init for_cond ';' for_update ')' block {
-        $$ = createFor($3, $4, $6, $8);
+    FOR '(' for_init ';' for_cond ';' for_update ')' block {
+        $$ = createFor($3, $5, $7, $9);
     }
     ;
 
 for_init:
     decl
-    | assign
-    | ';'   { $$ = NULL; }
+    | assign_expr
+    | /* empty since ; already included */   { $$ = NULL; } 
     ;
 
 for_cond:
@@ -210,7 +218,7 @@ for_cond:
     ;
 
 for_update:
-    expr    { $$ = $1; }
+    assign_expr    { $$ = $1; }
     | /* empty */ { $$ = NULL; }
     ;
 
