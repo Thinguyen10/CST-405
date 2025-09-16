@@ -12,6 +12,15 @@
 /* TAC INSTRUCTION TYPES */
 typedef enum {
     TAC_ADD,     /* Addition: result = arg1 + arg2 */
+    TAC_SUB,     /* Subtraction: result = arg1 - arg2 */
+    TAC_MUL,     /* Multiplication: result = arg1 * arg2 */
+    TAC_DIV,     /* Division: result = arg1 / arg2 */
+    TAC_EQ,      /* Equal: result = arg1 == arg2 */
+    TAC_NEQ,     /* Not equal: result = arg1 != arg2 */
+    TAC_GT,      /* Greater than: result = arg1 > arg2 */
+    TAC_LT,      /* Less than: result = arg1 < arg2 */
+    TAC_GE,      /* Greater or equal: result = arg1 >= arg2 */
+    TAC_LE,      /* Less or equal: result = arg1 <= arg2 */
     TAC_ASSIGN,  /* Assignment: result = arg1 */
     TAC_PRINT,   /* Print: print(arg1) */
     TAC_DECL     /* Declaration: declare result */

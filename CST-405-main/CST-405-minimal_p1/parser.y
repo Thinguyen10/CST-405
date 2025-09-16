@@ -207,9 +207,11 @@ for_stmt:
     ;
 
 for_init:
-    decl
+    /* allow a declaration inside the for parentheses without the trailing ';' */
+    TYPE ID { $$ = createDecl($2, NULL); free($2); }
+    | TYPE ID '=' expr { $$ = createDecl($2, $4); free($2); }
     | assign_expr
-    | /* empty since ; already included */   { $$ = NULL; } 
+    | /* empty since ; already included */   { $$ = NULL; }
     ;
 
 for_cond:
@@ -219,6 +221,22 @@ for_cond:
 
 for_update:
     assign_expr    { $$ = $1; }
+    | ID INC {
+        /* Translate i++ to i = i + 1 */
+        ASTNode* left = createVar($1);
+        ASTNode* one = createNum(1);
+        ASTNode* add = createBinOp("+", left, one);
+        $$ = createAssign($1, add);
+        free($1);
+    }
+    | ID DEC {
+        /* Translate i-- to i = i - 1 */
+        ASTNode* left = createVar($1);
+        ASTNode* one = createNum(1);
+        ASTNode* sub = createBinOp("-", left, one);
+        $$ = createAssign($1, sub);
+        free($1);
+    }
     | /* empty */ { $$ = NULL; }
     ;
 

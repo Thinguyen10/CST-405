@@ -54,23 +54,49 @@ char* generateTACExpr(ASTNode* node) {
     
     switch(node->type) {
         case NODE_NUM: {
-            char* temp = malloc(20);
-            sprintf(temp, "%d", node->data.num);
+            char* temp = malloc(32);
+            /* node->data.num is a double, use %g to format */
+            sprintf(temp, "%g", node->data.num);
             return temp;
         }
         
         case NODE_VAR:
             return strdup(node->data.name);
         
+        case NODE_EXPR_LIST:
+            /* For expression lists (e.g. print(arg)), evaluate the first expr */
+            if (!node->data.exprlist.first) return NULL;
+            return generateTACExpr(node->data.exprlist.first);
+        
         case NODE_BINOP: {
             char* left = generateTACExpr(node->data.binop.left);
             char* right = generateTACExpr(node->data.binop.right);
             char* temp = newTemp();
-            
-            if (node->data.binop.op == '+') {
-                appendTAC(createTAC(TAC_ADD, left, right, temp));
+
+            /* Guard: if one side is NULL just propagate the other (avoid NULL args) */
+            if (!left && right) left = strdup(right);
+            if (!right && left) right = strdup(left);
+
+            if (left && right && node->data.binop.op) {
+                TACOp op = TAC_ADD;
+                if (strcmp(node->data.binop.op, "+") == 0) op = TAC_ADD;
+                else if (strcmp(node->data.binop.op, "-") == 0) op = TAC_SUB;
+                else if (strcmp(node->data.binop.op, "*") == 0) op = TAC_MUL;
+                else if (strcmp(node->data.binop.op, "/") == 0) op = TAC_DIV;
+                else if (strcmp(node->data.binop.op, "==") == 0) op = TAC_EQ;
+                else if (strcmp(node->data.binop.op, "!=") == 0) op = TAC_NEQ;
+                else if (strcmp(node->data.binop.op, ">=") == 0) op = TAC_GE;
+                else if (strcmp(node->data.binop.op, "<=") == 0) op = TAC_LE;
+                else if (strcmp(node->data.binop.op, ">") == 0) op = TAC_GT;
+                else if (strcmp(node->data.binop.op, "<") == 0) op = TAC_LT;
+
+                appendTAC(createTAC(op, left, right, temp));
+            } else {
+                /* If we couldn't build operands, free temp and return NULL */
+                free(temp);
+                return NULL;
             }
-            
+
             return temp;
         }
         
@@ -125,6 +151,22 @@ void printTAC() {
                 printf("%s = %s + %s", curr->result, curr->arg1, curr->arg2);
                 printf("     // Add: store result in %s\n", curr->result);
                 break;
+            case TAC_SUB:
+                printf("%s = %s - %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Subtract: store result in %s\n", curr->result);
+                break;
+            case TAC_MUL:
+                printf("%s = %s * %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Multiply: store result in %s\n", curr->result);
+                break;
+            case TAC_DIV:
+                printf("%s = %s / %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Divide: store result in %s\n", curr->result);
+                break;
+            case TAC_EQ: case TAC_NEQ: case TAC_GT: case TAC_LT: case TAC_GE: case TAC_LE:
+                printf("%s = %s ? %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Relational op -> %s\n", curr->result);
+                break;
             case TAC_ASSIGN:
                 printf("%s = %s", curr->result, curr->arg1);
                 printf("           // Assign value to %s\n", curr->result);
@@ -163,8 +205,8 @@ void optimizeTAC() {
                 
             case TAC_ADD: {
                 // Check if both operands are constants
-                char* left = curr->arg1;
-                char* right = curr->arg2;
+                    char* left = curr->arg1;
+                    char* right = curr->arg2;
                 
                 // Look up values in propagation table (search from most recent)
                 for (int i = valueCount - 1; i >= 0; i--) {
@@ -180,20 +222,40 @@ void optimizeTAC() {
                     }
                 }
                 
-                // Constant folding
-                if (isdigit(left[0]) && isdigit(right[0])) {
-                    int result = atoi(left) + atoi(right);
-                    char* resultStr = malloc(20);
-                    sprintf(resultStr, "%d", result);
-                    
+                // Constant folding (handle numeric constants for several ops)
+                if (left && right && isdigit(left[0]) && isdigit(right[0])) {
+                    double a = atof(left);
+                    double b = atof(right);
+                    double res = 0;
+                    int isRel = 0;
+                    switch (curr->op) {
+                        case TAC_ADD: res = a + b; break;
+                        case TAC_SUB: res = a - b; break;
+                        case TAC_MUL: res = a * b; break;
+                        case TAC_DIV: if (b != 0) res = a / b; else res = 0; break;
+                        case TAC_EQ:  res = (a == b); isRel = 1; break;
+                        case TAC_NEQ: res = (a != b); isRel = 1; break;
+                        case TAC_GT:  res = (a > b); isRel = 1; break;
+                        case TAC_LT:  res = (a < b); isRel = 1; break;
+                        case TAC_GE:  res = (a >= b); isRel = 1; break;
+                        case TAC_LE:  res = (a <= b); isRel = 1; break;
+                        default: res = a + b; break;
+                    }
+
+                    char* resultStr = malloc(32);
+                    if (isRel)
+                        sprintf(resultStr, "%d", (int)res);
+                    else
+                        sprintf(resultStr, "%g", res);
+
                     // Store for propagation
                     values[valueCount].var = strdup(curr->result);
                     values[valueCount].value = resultStr;
                     valueCount++;
-                    
+
                     newInstr = createTAC(TAC_ASSIGN, resultStr, NULL, curr->result);
                 } else {
-                    newInstr = createTAC(TAC_ADD, left, right, curr->result);
+                    newInstr = createTAC(curr->op, left, right, curr->result);
                 }
                 break;
             }
@@ -256,6 +318,22 @@ void printOptimizedTAC() {
             case TAC_ADD:
                 printf("%s = %s + %s", curr->result, curr->arg1, curr->arg2);
                 printf("     // Runtime addition needed\n");
+                break;
+            case TAC_SUB:
+                printf("%s = %s - %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Runtime subtraction needed\n");
+                break;
+            case TAC_MUL:
+                printf("%s = %s * %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Runtime multiplication needed\n");
+                break;
+            case TAC_DIV:
+                printf("%s = %s / %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Runtime division needed\n");
+                break;
+            case TAC_EQ: case TAC_NEQ: case TAC_GT: case TAC_LT: case TAC_GE: case TAC_LE:
+                printf("%s = %s ? %s", curr->result, curr->arg1, curr->arg2);
+                printf("     // Relational op result in %s\n", curr->result);
                 break;
             case TAC_ASSIGN:
                 printf("%s = %s", curr->result, curr->arg1);
