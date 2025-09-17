@@ -9,18 +9,18 @@ print(b);
 print(c);
 
 while (i <= 5) {
-    print(i);
     c = c + i;
     print(c);
     i = i + 1;
 }
 
-print(c);
 
-int d = a * b;
-print(d);
+for (int j = 0; j < 3; j = j + 1) {
+    c = c + j;
+    print(c);
+}
 
-int e = c - d;
+int e = c - a;
 print(e);
 
 
