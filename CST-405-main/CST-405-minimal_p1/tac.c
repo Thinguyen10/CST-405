@@ -204,58 +204,43 @@ void optimizeTAC() {
                 newInstr = createTAC(TAC_DECL, NULL, NULL, curr->result);
                 break;
                 
-            case TAC_ADD:
-            case TAC_SUB:
-            case TAC_MUL:
-            case TAC_DIV:
-            case TAC_EQ:
-            case TAC_NEQ:
-            case TAC_GT:
-            case TAC_LT:
-            case TAC_GE:
-            case TAC_LE: {
-                char* left = curr->arg1;
-                char* right = curr->arg2;
+            case TAC_ADD: {
+                // Check if both operands are constants
+                    char* left = curr->arg1;
+                    char* right = curr->arg2;
                 
                 // Look up values in propagation table (search from most recent)
                 for (int i = valueCount - 1; i >= 0; i--) {
-                    if (left && values[i].var && strcmp(values[i].var, left) == 0) {
+                    if (strcmp(values[i].var, left) == 0) {
                         left = values[i].value;
                         break;
                     }
                 }
                 for (int i = valueCount - 1; i >= 0; i--) {
-                    if (right && values[i].var && strcmp(values[i].var, right) == 0) {
+                    if (strcmp(values[i].var, right) == 0) {
                         right = values[i].value;
                         break;
                     }
                 }
                 
-                // Constant folding
+                // Constant folding (handle numeric constants for several ops)
                 if (left && right && isdigit(left[0]) && isdigit(right[0])) {
                     double a = atof(left);
                     double b = atof(right);
                     double res = 0;
                     int isRel = 0;
-                    
                     switch (curr->op) {
                         case TAC_ADD: res = a + b; break;
                         case TAC_SUB: res = a - b; break;
                         case TAC_MUL: res = a * b; break;
-                        case TAC_DIV: 
-                            if (b != 0) res = a / b;
-                            else {
-                                fprintf(stderr, "Warning: Division by zero\n");
-                                res = 0;
-                            }
-                            break;
+                        case TAC_DIV: if (b != 0) res = a / b; else res = 0; break;
                         case TAC_EQ:  res = (a == b); isRel = 1; break;
                         case TAC_NEQ: res = (a != b); isRel = 1; break;
-                        case TAC_GT:  res = (a > b);  isRel = 1; break;
-                        case TAC_LT:  res = (a < b);  isRel = 1; break;
+                        case TAC_GT:  res = (a > b); isRel = 1; break;
+                        case TAC_LT:  res = (a < b); isRel = 1; break;
                         case TAC_GE:  res = (a >= b); isRel = 1; break;
                         case TAC_LE:  res = (a <= b); isRel = 1; break;
-                        default: break;
+                        default: res = a + b; break;
                     }
 
                     char* resultStr = malloc(32);
@@ -266,11 +251,10 @@ void optimizeTAC() {
 
                     // Store for propagation
                     values[valueCount].var = strdup(curr->result);
-                    values[valueCount].value = strdup(resultStr);
+                    values[valueCount].value = resultStr;
                     valueCount++;
 
                     newInstr = createTAC(TAC_ASSIGN, resultStr, NULL, curr->result);
-                    free(resultStr);
                 } else {
                     newInstr = createTAC(curr->op, left, right, curr->result);
                 }
@@ -302,7 +286,7 @@ void optimizeTAC() {
                 
                 // Look up value in propagation table
                 for (int i = valueCount - 1; i >= 0; i--) {  // Search from most recent
-                    if (value && values[i].var && strcmp(values[i].var, value) == 0) {
+                    if (strcmp(values[i].var, value) == 0) {
                         value = values[i].value;
                         break;
                     }
