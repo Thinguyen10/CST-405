@@ -35,7 +35,7 @@ ASTNode* root = NULL;          /* Root of the Abstract Syntax Tree */
 %token <str> ID
 %token PRINT TYPE KEYWORD     /* Thi added all */
 %token IF ELSE WHILE FOR RETURN BREAK
-%token EQ NEQ GE LE AND OR INC DEC  /* Thi added */
+%token EQ NEQ GE LE AND OR INC DEC  /* Thi added - mainly for loops/condition */
 
 
 /* Nonterminal semantic types */
@@ -210,7 +210,7 @@ for_init:
     /* allow a declaration inside the for parentheses without the trailing ';' */
     TYPE ID { $$ = createDecl($2, NULL); free($2); }
     | TYPE ID '=' expr { $$ = createDecl($2, $4); free($2); }
-    | assign_expr
+    | assign_expr /* using a type that has already been declared earlier */
     | /* empty since ; already included */   { $$ = NULL; }
     ;
 
