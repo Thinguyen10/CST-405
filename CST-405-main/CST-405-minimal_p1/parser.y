@@ -1,5 +1,5 @@
 
-//a script built from bison by make command
+/* a script built from bison by make command */
 %{
 /* SYNTAX ANALYZER (PARSER)
  * This is the second phase of compilation - checking grammar rules
@@ -25,31 +25,46 @@ ASTNode* root = NULL;          /* Root of the Abstract Syntax Tree */
  * This allows different grammar rules to return different data types
  */
 %union {
-    int num;                /* For integer literals */
+    double num;                /* Thi added - For numeric (float) literals */
     char* str;              /* For identifiers */
-    struct ASTNode* node;   /* For AST nodes */
+    struct ASTNode* node;   /* For AST nodes (statements, expressions, types, etc.) */
 }
 
 /* TOKEN DECLARATIONS with their semantic value types */
-%token <num> NUM
+%token <num> NUM  /* numeric literals */
 %token <str> ID
-%token <node> INT PRINT TYPE KEYWORD
-%token EQ NEQ GE LE AND OR INC DEC
+%token PRINT TYPE KEYWORD     /* Thi added all */
+%token IF ELSE WHILE FOR RETURN BREAK
+%token EQ NEQ GE LE AND OR INC DEC  /* Thi added - mainly for loops/condition */
 
 
+/* Nonterminal semantic types */
+%type <node> program stmt_list stmt decl assign expr  assign_expr print_stmt
+%type <node> if_stmt while_stmt for_stmt return_stmt block expr_list
+%type <node> for_init for_cond for_update
 
-/* NON-TERMINAL TYPES - Define what type each grammar rule returns */
-%type <node> program stmt_list stmt decl assign expr print_stmt
 
-/* OPERATOR PRECEDENCE AND ASSOCIATIVITY */
-%left '+'  /* Addition is left-associative: a+b+c = (a+b)+c */
+/* DEFINE OPERATOR PRECEDENCE 
+Ex: * over + -
+*/
 
-%%
+%left OR
+%left AND
+%nonassoc EQ NEQ
+%nonassoc '>' '<' GE LE
+%left '+' '-'
+%left '*' '/'
+%right UMINUS     /* unary minus */
+
+/* start symbol */
+%start program
+
+%% 
 
 /* GRAMMAR RULES - Define the structure of our language */
 /* Goes from program -> stmt list -> stmt -> decl -> assign -> expr */
 
-/* PROGRAM RULE - Entry point of our grammar */
+/* PROGRAM RULE - Entry point of our grammar*/
 program:
     stmt_list { 
         /* Action: Save the statement list as our AST root */
@@ -69,19 +84,42 @@ stmt_list:
     }
     ;
 
-/* STATEMENT TYPES - means a stmt can be either a decl or assign or print_stmt */
+/* STATEMENT TYPES - means a stmt can be either a decl, assign, print_stmt, or others */
 stmt:
     decl        /* Variable declaration */
     | assign    /* Assignment statement */
     | print_stmt /* Print statement */
+    | if_stmt     /* Thi added */
+    | while_stmt
+    | for_stmt
+    | return_stmt
+    | BREAK ';' { $$ = createBreak(); }
+    ;
+
+/* BLOCK: sequence of statements inside curly braces */
+block:
+    '{' stmt_list '}' { $$ = $2; }
     ;
 
 /* DECLARATION RULE - "int x;" */
 decl:
     TYPE ID ';' { 
         /* Create declaration node and free the identifier string */
-        $$ = createDecl($2);  /* $2 token #2, meaning take ID */
+        $$ = createDecl($2, NULL);  /* $2 is token #2, meaning take ID */
         free($2);             /* And free the string copy ID from scanner */
+    }
+    |
+    TYPE ID '=' expr ';' { /* Thi added */
+        $$ = createDecl($2, $4);  
+        free($2);    
+    }
+    ;
+
+/* Assignment expression (NO ;) for for-loops */
+assign_expr:
+    ID '=' expr {
+        $$ = createAssign($1, $3);  /* Reuse the same AST constructor */
+        free($1);
     }
     ;
 
@@ -98,24 +136,115 @@ assign:
 expr:
     NUM { 
         /* Literal number */
-        $$ = createNum($1);  /* Create leaf node with number value */
+        $$ = createNum($1);  /* $1 is of type int */
     }
     | ID { 
         /* Variable reference */
-        $$ = createVar($1);  /* Create leaf node with variable name */
+        $$ = createVar($1);  /* $1 is char*/
         free($1);            /* Free the identifier string */
     }
-    | expr '+' expr { 
-        /* Addition operation - builds binary tree */
-        $$ = createBinOp('+', $1, $3);  /* Left child, op, right child */
-    }
+    | expr '+' expr { $$ = createBinOp("+", $1, $3);  }
+    | expr '-' expr { $$ = createBinOp("-", $1, $3);  } /* Thi added all */
+    | expr '*' expr { $$ = createBinOp("*", $1, $3);  }
+    | expr '/' expr { $$ = createBinOp("/", $1, $3);  }
+    | expr EQ expr  { $$ = createBinOp("==", $1, $3); }  /* EQ from lexer ("==") */
+    | expr NEQ expr { $$ = createBinOp("!=", $1, $3); }  /* NEQ from lexer ("!=") */
+    | expr GE expr  { $$ = createBinOp(">=", $1, $3); }  /* GE from lexer (">=") */
+    | expr LE expr  { $$ = createBinOp("<=", $1, $3); }  /* LE from lexer ("<=") */
+    | expr '>' expr { $$ = createBinOp(">", $1, $3); }   /* '>' returned as '>' */
+    | expr '<' expr { $$ = createBinOp("<", $1, $3); }   /* '<' returned as '<' */
+    | expr AND expr { $$ = createBinOp("&&", $1, $3); }  /* AND token ("&&") */
+    | expr OR expr  { $$ = createBinOp("||", $1, $3); }  /* OR token ("||") */
+    | '-' expr %prec UMINUS { $$ = createUnaryOp("-", $2); }
+    | '(' expr ')' { $$ = $2; }
     ;
+
+/* EXPRESSION LIST RULES */
+expr_list:
+    expr {
+        $$ = createExprList($1, NULL);
+    }
+    |
+    expr_list ',' expr {
+        $$ = addToExprList($1, $3);
+    }
+
 
 /* PRINT STATEMENT - "print(expr);" */
 print_stmt:
-    PRINT '(' expr ')' ';' { 
+    PRINT '(' expr_list ')' ';' { 
         /* Create print node with expression to print */
         $$ = createPrint($3);  /* $3 is the expression inside parens */
+    }
+    ;
+
+
+/* IF statement: supports optional ELSE
+   NOTE: lexer must return distinct tokens for 'if' and 'else' for this to work.
+   See lexer notes below. */
+if_stmt:
+    /* if (cond) block */
+    IF '(' expr ')' block {
+        $$ = createIf($3, $5, NULL);
+    }
+    | IF '(' expr ')' block ELSE block {
+        $$ = createIf($3, $5, $7);
+    }
+    ;
+
+/* WHILE statement */
+while_stmt:
+    WHILE '(' expr ')' block {
+        $$ = createWhile($3, $5);
+    }
+    ;
+
+/* FOR statement: simple C-style for(init; cond; update) { body } */
+for_stmt:
+    FOR '(' for_init ';' for_cond ';' for_update ')' block {
+        $$ = createFor($3, $5, $7, $9);
+    }
+    ;
+
+for_init:
+    /* allow a declaration inside the for parentheses without the trailing ';' */
+    TYPE ID { $$ = createDecl($2, NULL); free($2); }
+    | TYPE ID '=' expr { $$ = createDecl($2, $4); free($2); }
+    | assign_expr /* using a type that has already been declared earlier */
+    | /* empty since ; already included */   { $$ = NULL; }
+    ;
+
+for_cond:
+    expr    { $$ = $1; }
+    | /* empty */ { $$ = NULL; }
+    ;
+
+for_update:
+    assign_expr    { $$ = $1; }
+    | ID INC {
+        /* Translate i++ to i = i + 1 */
+        ASTNode* left = createVar($1);
+        ASTNode* one = createNum(1);
+        ASTNode* add = createBinOp("+", left, one);
+        $$ = createAssign($1, add);
+        free($1);
+    }
+    | ID DEC {
+        /* Translate i-- to i = i - 1 */
+        ASTNode* left = createVar($1);
+        ASTNode* one = createNum(1);
+        ASTNode* sub = createBinOp("-", left, one);
+        $$ = createAssign($1, sub);
+        free($1);
+    }
+    | /* empty */ { $$ = NULL; }
+    ;
+
+
+/* RETURN statement */
+return_stmt:
+    RETURN expr ';' {
+        $$ = createReturn($2);
     }
     ;
 

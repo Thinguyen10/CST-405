@@ -1,14 +1,34 @@
-int x;
-int y;
-int z;
 
-x = 10;
-y = 20;
-z = x + y;
-print(z);
+int a = 2;
+int b = 3;
+int c = 0;
+int i = 0;
 
-x = z + 5;
-print(x);
+print(a);
+print(b);
+print(c);
 
-y = x + y + z;
-print(y);
+while (i <= 5) {
+    c = c + i;
+    print(c);
+    i = i + 1;
+}
+
+
+for (int j = 0; j < 3; j = j + 1) {
+    c = c + j;
+    print(c);
+}
+
+int e = c - a;
+print(e);
+
+
+if (e > 0) {
+    e = e + 10;
+} else {
+    e = e - 10;
+}
+
+
+return e;

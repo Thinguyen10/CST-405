@@ -17,7 +17,7 @@ letter [a-zA-Z]
 digit [0-9]
 ID {letter}({letter}|{digit})*
 TYPE (int|void|float|char|double|long|short)
-KEYWORD (if|else|while|for|write|writeln|read|return|break)
+KEYWORD (write|writeln|read)
 NUMBER {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 
 %%
@@ -31,6 +31,15 @@ NUMBER {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
     printf("%s : KEYWORD\n", yytext);
     return KEYWORD;
 }
+
+"if"      { printf("%s : IF\n", yytext); return IF; }
+"else"    { printf("%s : ELSE\n", yytext); return ELSE; }
+"while"   { printf("%s : WHILE\n", yytext); return WHILE; }
+"for"     { printf("%s : FOR\n", yytext); return FOR; }
+"return"  { printf("%s : RETURN\n", yytext); return RETURN; }
+"break"   { printf("%s : BREAK\n", yytext); return BREAK; }
+
+
 "print" {
     printf("%s : PRINT\n", yytext);
     return PRINT;
