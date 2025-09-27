@@ -140,6 +140,33 @@ ASTNode* createReturn(ASTNode* expr) {
     return node;
 }
 
+ASTNode* createArrayDecl(char* name, ASTNode* size) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = NODE_ARRAY_DECL;
+    node->data.array_decl.name = strdup(name);
+    node->data.array_decl.size = size;
+    return node;
+}
+
+
+ASTNode* createArrayAccess(char* name, ASTNode* index) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = NODE_ARRAY_ACCESS;
+    node->data.array_access.name = strdup(name);
+    node->data.array_access.index = index;
+    return node;
+}
+
+ASTNode* createArrayAssign(char* name, ASTNode* index, ASTNode* value) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = NODE_ARRAY_ASSIGN;
+    node->data.array_assign.name = strdup(name);
+    node->data.array_assign.index = index;
+    node->data.array_assign.value = value;
+    return node;
+}
+
+
 /* Display AST (debugging) */
 void printAST(ASTNode* node, int level) {
     if (!node) return;

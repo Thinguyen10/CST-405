@@ -113,6 +113,14 @@ decl:
         $$ = createDecl($2, $4);  
         free($2);    
     }
+    | TYPE ID '[' NUM ']' ';' {
+        $$ = createArrayDecl($2, $4, NULL);  /* single-dim array */
+        free($2);
+    }
+    | TYPE ID '[' NUM ']' '=' '{' expr_list '}' ';' {
+        $$ = createArrayDecl($2, $4, $8);  /* array with initializer */
+        free($2);
+    }
     ;
 
 /* Assignment expression (NO ;) for for-loops */
@@ -130,6 +138,10 @@ assign:
         $$ = createAssign($1, $3);  /* $1 = ID, $3 = expr */
         free($1);                   /* Free the identifier string */
     }
+    | ID '[' expr ']' '=' expr ';' {
+        $$ = createArrayAssign($1, $3, $6);  /* arr[i] = expr */
+        free($1);
+    }
     ;
 
 /* EXPRESSION RULES - Build expression trees */
@@ -142,6 +154,10 @@ expr:
         /* Variable reference */
         $$ = createVar($1);  /* $1 is char*/
         free($1);            /* Free the identifier string */
+    }
+    | ID '[' expr ']' {
+        $$ = createArrayAccess($1, $3);  /* arr[i] */
+        free($1);
     }
     | expr '+' expr { $$ = createBinOp("+", $1, $3);  }
     | expr '-' expr { $$ = createBinOp("-", $1, $3);  } /* Thi added all */

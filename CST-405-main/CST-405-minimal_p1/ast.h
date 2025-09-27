@@ -23,6 +23,9 @@ typedef enum {
     NODE_WHILE,     /* While loop */
     NODE_FOR,       /* For loop */
     NODE_RETURN     /* Return statement */
+    NODE_ARRAY_DECL, /* Array declaration */
+    NODE_ARRAY_ACCESS /* Array access */
+    NODE_ARRAY_ASSIGN /* Array assignment */
 } NodeType;
 
 /* AST NODE STRUCTURE
@@ -99,6 +102,25 @@ typedef struct ASTNode {
             struct ASTNode* update;
             struct ASTNode* body;
         } for_stmt;
+
+        /* Array declaration structure (NODE_ARRAY_DECL) */
+        struct {
+            char* name;               /* Array name */
+            struct ASTNode* size;     /* Array size expression */
+        } array_decl;
+
+        /* Array access structure (NODE_ARRAY_ACCESS) */
+        struct {
+            char* name;               /* Array name */
+            struct ASTNode* index;    /* Index expression */
+        } array_access;
+
+        /* Array assignment structure (NODE_ARRAY_ASSIGN) */
+        struct {
+            char* name;               /* Array name */
+            struct ASTNode* index;    /* Index expression */
+            struct ASTNode* value;    /* Value expression */
+        } array_assign;
 
         /* Return statement structure (NODE_RETURN) */
         struct ASTNode* ret_expr;
