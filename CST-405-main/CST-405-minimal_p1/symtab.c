@@ -15,10 +15,18 @@ SymbolTable symtab;
 void initSymTab() {
     symtab.count = 0;       /* No variables yet */
     symtab.nextOffset = 0;  /* Start at stack offset 0 */
+    symtab.vars[symtab.count].isArray = 0;  /* Not an array */
+    symtab.vars[symtab.count].arraySize = 0; /* Array size 0 */
+
 }
 
 /* Add a new variable to the symbol table */
-int addVar(char* name) {
+int addVar(char* name, int size) {
+
+    if (size <= 0) {
+        return -1;
+    }  /* Error: invalid array size */
+
     /* Check for duplicate declaration */
     if (isVarDeclared(name)) {
         return -1;  /* Error: variable already exists */
@@ -27,6 +35,10 @@ int addVar(char* name) {
     /* Add new symbol entry */
     symtab.vars[symtab.count].name = strdup(name);
     symtab.vars[symtab.count].offset = symtab.nextOffset;
+
+    symtab.vars[symtab.count].isArray = 1;
+    symtab.vars[symtab.count].arraySize = size;
+
     
     /* Advance offset by 4 bytes (size of int in MIPS) */
     symtab.nextOffset += 4;
