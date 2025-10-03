@@ -7,19 +7,39 @@
 #include "ast.h"
 #include "codegen.h"
 #include "tac.h"
+#include "symtab.h"
+#include <string.h>
 
 extern int yyparse();
 extern FILE* yyin;
 extern ASTNode* root;
+extern int yydebug; /* Bison parser debug flag */
+int yydebug = 0;
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printf("Usage: %s <input.c> <output.s>\n", argv[0]);
+    int print_symtab = 0;
+    const char* input_path = NULL;
+    const char* output_path = NULL;
+
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--symtab") == 0) {
+            print_symtab = 1;
+        } else if (!input_path) {
+            input_path = argv[i];
+        } else if (!output_path) {
+            output_path = argv[i];
+        } else {
+            /* extra args ignored */
+        }
+    }
+
+    if (!input_path || !output_path) {
+        printf("Usage: %s [--symtab] <input.c> <output.s>\n", argv[0]);
         printf("Example: ./minicompiler test.c output.s\n");
         return 1;
     }
-    
-    yyin = fopen(argv[1], "r");
+
+    yyin = fopen(input_path, "r");
     if (!yyin) {
         fprintf(stderr, "Error: Cannot open input file '%s'\n", argv[1]);
         return 1;
@@ -35,12 +55,20 @@ int main(int argc, char* argv[]) {
     printf("┌──────────────────────────────────────────────────────────┐\n");
     printf("│ PHASE 1: LEXICAL & SYNTAX ANALYSIS                       │\n");
     printf("├──────────────────────────────────────────────────────────┤\n");
-    printf("│ • Reading source file: %s\n", argv[1]);
+    printf("│ • Reading source file: %s\n", input_path);
     printf("│ • Tokenizing input (scanner.l)\n");
     printf("│ • Parsing grammar rules (parser.y)\n");
     printf("│ • Building Abstract Syntax Tree\n");
     printf("└──────────────────────────────────────────────────────────┘\n");
     
+    /* Optionally enable parser debug via environment variable PARSE_DEBUG=1 */
+    char* pdebug = getenv("PARSE_DEBUG");
+    if (pdebug && strcmp(pdebug, "1") == 0) yydebug = 1;
+    /* Optionally enable lexer debug via environment variable LEX_DEBUG=1 */
+    extern int lex_debug; /* defined in lex.yy.c */
+    char* ldebug = getenv("LEX_DEBUG");
+    if (ldebug && strcmp(ldebug, "1") == 0) lex_debug = 1;
+
     if (yyparse() == 0) {
         printf("✓ Parse successful - program is syntactically correct!\n\n");
         
@@ -87,9 +115,14 @@ int main(int argc, char* argv[]) {
         printf("│ • Using $t0-$t7 for temporary values                     │\n");
         printf("│ • System calls for print operations                      │\n");
         printf("└──────────────────────────────────────────────────────────┘\n");
-        generateMIPS(root, argv[2]);
-        printf("✓ MIPS assembly code generated to: %s\n", argv[2]);
-        printf("\n");
+     generateMIPS(root, output_path);
+     printf("✓ MIPS assembly code generated to: %s\n", output_path);
+     printf("\n");
+     if (print_symtab) {
+         /* Diagnostic: print symbol table stats */
+         printf("SYMTAB: count=%d nextOffset=%d lookups=%d collisions=%d\n",
+             symtab.count, symtab.nextOffset, symtab.lookups, symtab.collisions);
+     }
         
         printf("╔════════════════════════════════════════════════════════════╗\n");
         printf("║                  COMPILATION SUCCESSFUL!                   ║\n");

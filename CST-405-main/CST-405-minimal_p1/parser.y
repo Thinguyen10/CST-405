@@ -113,6 +113,16 @@ decl:
         $$ = createDecl($2, $4);  
         free($2);    
     }
+    | TYPE ID '[' NUM ']' ';' {
+        /* wrap the numeric size in a NUM AST node to match prototype */
+        $$ = createArrayDecl($2, createNum($4), NULL);  /* single-dim array */
+        free($2);
+    }
+    | TYPE ID '[' NUM ']' '=' '{' expr_list '}' ';' {
+        /* wrap the numeric size in a NUM AST node to match prototype */
+        $$ = createArrayDecl($2, createNum($4), $8);  /* array with initializer */
+        free($2);
+    }
     ;
 
 /* Assignment expression (NO ;) for for-loops */
@@ -121,11 +131,21 @@ assign_expr:
         $$ = createAssign($1, $3);  /* Reuse the same AST constructor */
         free($1);
     }
+    | ID '[' expr ']' '=' expr {
+        /* Array assignment without trailing semicolon (used in for-update) */
+        $$ = createArrayAssign($1, $3, $6);
+        free($1);
+    }
     ;
 
 /* ASSIGNMENT RULE - "x = expr;" */
 assign:
-    ID '=' expr ';' { 
+    ID '[' expr ']' '=' expr ';' {
+        /* Array element assignment: arr[index] = value; */
+        $$ = createArrayAssign($1, $3, $6);
+        free($1);
+    }
+    | ID '=' expr ';' { 
         /* Create assignment node with variable name and expression */
         $$ = createAssign($1, $3);  /* $1 = ID, $3 = expr */
         free($1);                   /* Free the identifier string */
@@ -142,6 +162,10 @@ expr:
         /* Variable reference */
         $$ = createVar($1);  /* $1 is char*/
         free($1);            /* Free the identifier string */
+    }
+    | ID '[' expr ']' { /* Array access expression */
+        $$ = createArrayAccess($1, $3);
+        free($1);
     }
     | expr '+' expr { $$ = createBinOp("+", $1, $3);  }
     | expr '-' expr { $$ = createBinOp("-", $1, $3);  } /* Thi added all */

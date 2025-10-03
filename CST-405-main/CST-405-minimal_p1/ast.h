@@ -22,7 +22,10 @@ typedef enum {
     NODE_IF,        /* If statement */
     NODE_WHILE,     /* While loop */
     NODE_FOR,       /* For loop */
-    NODE_RETURN     /* Return statement */
+    NODE_RETURN,     /* Return statement */
+    NODE_ARRAY_DECL, /* Array declaration */
+    NODE_ARRAY_ACCESS, /* Array access */
+    NODE_ARRAY_ASSIGN /* Array assignment */
 } NodeType;
 
 /* AST NODE STRUCTURE
@@ -99,7 +102,25 @@ typedef struct ASTNode {
             struct ASTNode* update;
             struct ASTNode* body;
         } for_stmt;
+        /* Array declaration structure (NODE_ARRAY_DECL) */
+        struct {
+            char* name;               /* Array name */
+            struct ASTNode* size;     /* Array size expression */
+            struct ASTNode* init;     /* Optional initializer list (expr_list) */
+        } array_decl;
 
+        /* Array access structure (NODE_ARRAY_ACCESS) */
+        struct {
+            char* name;               /* Array name */
+            struct ASTNode* index;    /* Index expression */
+        } array_access;
+
+        /* Array assignment structure (NODE_ARRAY_ASSIGN) */
+        struct {
+            char* name;               /* Array name */
+            struct ASTNode* index;    /* Index expression */
+            struct ASTNode* value;    /* Value expression */
+        } array_assign;
         /* Return statement structure (NODE_RETURN) */
         struct ASTNode* ret_expr;
 
@@ -114,6 +135,10 @@ ASTNode* createUnaryOp(const char* op, ASTNode* expr);
 ASTNode* createDecl(char* name, ASTNode* init);
 ASTNode* createAssign(char* var, ASTNode* value);
 ASTNode* createPrint(ASTNode* expr);
+/* Array-related constructors (name, size, optional initializer/list) */
+ASTNode* createArrayDecl(char* name, ASTNode* size, ASTNode* initList);
+ASTNode* createArrayAccess(char* name, ASTNode* index);
+ASTNode* createArrayAssign(char* name, ASTNode* index, ASTNode* value);
 ASTNode* createStmtList(ASTNode* stmt1, ASTNode* stmt2);
 ASTNode* createExprList(ASTNode* first, ASTNode* rest);
 ASTNode* addToExprList(ASTNode* list, ASTNode* expr);

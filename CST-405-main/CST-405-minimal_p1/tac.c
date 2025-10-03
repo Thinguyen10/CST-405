@@ -69,6 +69,10 @@ char* generateTACExpr(ASTNode* node) {
             if (!node->data.exprlist.first) return NULL;
             return generateTACExpr(node->data.exprlist.first);
         
+        case NODE_ARRAY_ACCESS:
+            /* Minimal TAC representation: use the array name as operand (codegen handles address) */
+            return strdup(node->data.array_access.name);
+        
         case NODE_BINOP: {
             char* left = generateTACExpr(node->data.binop.left);
             char* right = generateTACExpr(node->data.binop.right);
@@ -113,10 +117,23 @@ void generateTAC(ASTNode* node) {
         case NODE_DECL:
             appendTAC(createTAC(TAC_DECL, NULL, NULL, node->data.name));
             break;
+        case NODE_ARRAY_DECL: {
+            /* include size as arg1 for informational purposes */
+            char* sizeStr = NULL;
+            if (node->data.array_decl.size) sizeStr = generateTACExpr(node->data.array_decl.size);
+            appendTAC(createTAC(TAC_DECL, sizeStr, NULL, node->data.array_decl.name));
+            break;
+        }
             
         case NODE_ASSIGN: {
             char* expr = generateTACExpr(node->data.assign.value);
             appendTAC(createTAC(TAC_ASSIGN, expr, NULL, node->data.assign.var));
+            break;
+        }
+        case NODE_ARRAY_ASSIGN: {
+            /* arr[index] = value -> represent as assign to array name (index info lost in TAC) */
+            char* expr = generateTACExpr(node->data.array_assign.value);
+            appendTAC(createTAC(TAC_ASSIGN, expr, NULL, node->data.array_assign.name));
             break;
         }
         
@@ -141,9 +158,18 @@ void printTAC() {
     printf("─────────────────────────────\n");
     TACInstr* curr = tacList.head;
     int lineNum = 1;
-    while (curr) {
-        printf("%2d: ", lineNum++);
-        switch(curr->op) {
+        while (curr) {
+            printf("%2d: ", lineNum++);
+            switch(curr->op) {
+                case TAC_PRINT:
+                    if (curr->arg1) {
+                        printf("PRINT %s", curr->arg1);
+                        printf("          // Output value of %s\n", curr->arg1);
+                    } else {
+                        printf("PRINT <empty>");
+                        printf("          // Output value of <empty>\n");
+                    }
+                    break;
             case TAC_DECL:
                 printf("DECL %s", curr->result);
                 printf("          // Declare variable '%s'\n", curr->result);
@@ -169,12 +195,8 @@ void printTAC() {
                 printf("     // Relational op -> %s\n", curr->result);
                 break;
             case TAC_ASSIGN:
-                printf("%s = %s", curr->result, curr->arg1);
+                printf("%s = %s", curr->result, curr->arg1?curr->arg1:"<null>");
                 printf("           // Assign value to %s\n", curr->result);
-                break;
-            case TAC_PRINT:
-                printf("PRINT %s", curr->arg1);
-                printf("          // Output value of %s\n", curr->arg1);
                 break;
             default:
                 break;
@@ -346,12 +368,16 @@ void printOptimizedTAC() {
                 }
                 break;
             case TAC_PRINT:
-                printf("PRINT %s", curr->arg1);
-                // Check if it's a constant
-                if (curr->arg1[0] >= '0' && curr->arg1[0] <= '9') {
-                    printf("          // Print constant: %s\n", curr->arg1);
+                if (curr->arg1) {
+                    printf("PRINT %s", curr->arg1);
+                    // Check if it's a constant
+                    if (curr->arg1[0] >= '0' && curr->arg1[0] <= '9') {
+                        printf("          // Print constant: %s\n", curr->arg1);
+                    } else {
+                        printf("          // Print variable\n");
+                    }
                 } else {
-                    printf("          // Print variable\n");
+                    printf("PRINT <empty>          // Print empty\n");
                 }
                 break;
             default:

@@ -5,12 +5,12 @@ newline: .asciiz "\n"
 .align 2
 .globl main
 main:
-    # Allocate stack space
-    addi $sp, $sp, -408  # 400 for vars + 8 for ra/fp
+    # Allocate stack space (computed)
+    addi $sp, $sp, -8
     # Setup stack frame
-    sw $ra, 404($sp)   # Save return address at the top
-    sw $fp, 400($sp)   # Save frame pointer below ra
-    move $fp, $sp      # Set up frame pointer
+    sw $ra, 4($sp)   # Save return address
+    sw $fp, 0($sp)   # Save frame pointer
+    addi $fp, $sp, 8   # Set frame pointer to old sp + frameBytes
 
     # Declared a at offset 0
     li $t0, 2
@@ -118,6 +118,14 @@ end_4:
     li $v0, 4
     la $a0, newline
     syscall
+    # Print integer
+    move $a0, $zero
+    li $v0, 1
+    syscall
+    # Print newline
+    li $v0, 4
+    la $a0, newline
+    syscall
     lw $t0, 20($sp)
     li $t1, 0
     slt $t0, $t1, $t0
@@ -137,9 +145,9 @@ end_6:
     move $v0, $t0
 
     # Exit program
-    move $sp, $fp      # Restore stack pointer
-    lw $ra, 404($sp)   # Restore return address
-    lw $fp, 400($sp)   # Restore frame pointer
-    addi $sp, $sp, 408 # Deallocate stack space
+    addi $sp, $fp, -8    # Compute original sp from fp
+    lw $ra, 4($sp)   # Restore return address
+    lw $fp, 0($sp)   # Restore frame pointer
+    addi $sp, $sp, 8 # Deallocate stack space
     li $v0, 10
     syscall

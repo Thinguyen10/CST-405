@@ -519,11 +519,12 @@ char *yytext;
 #include <stdlib.h>
 #include <string.h>
 #include "parser.tab.h" /* Token definitions from Bison */
-#line 522 "lex.yy.c"
+int lex_debug = 0; /* set to 1 to enable token debug prints */
+#line 523 "lex.yy.c"
 /* Flex options */
 #define YY_NO_INPUT 1
 /* Regular expression macros */
-#line 526 "lex.yy.c"
+#line 527 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -738,10 +739,10 @@ YY_DECL
 		}
 
 	{
-#line 23 "Improved_scanner.l"
+#line 24 "Improved_scanner.l"
 
 
-#line 744 "lex.yy.c"
+#line 745 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -800,215 +801,196 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 25 "Improved_scanner.l"
-{
-    printf("%s : TYPE\n", yytext);
-    return TYPE;
-}
+#line 26 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : TYPE\n", yytext); return TYPE; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 30 "Improved_scanner.l"
-{
-    printf("%s : KEYWORD\n", yytext);
-    return KEYWORD;
-}
+#line 28 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : KEYWORD\n", yytext); return KEYWORD; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 35 "Improved_scanner.l"
-{ printf("%s : IF\n", yytext); return IF; }
+#line 30 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : IF\n", yytext); return IF; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 36 "Improved_scanner.l"
-{ printf("%s : ELSE\n", yytext); return ELSE; }
+#line 31 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : ELSE\n", yytext); return ELSE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 37 "Improved_scanner.l"
-{ printf("%s : WHILE\n", yytext); return WHILE; }
+#line 32 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : WHILE\n", yytext); return WHILE; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 38 "Improved_scanner.l"
-{ printf("%s : FOR\n", yytext); return FOR; }
+#line 33 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : FOR\n", yytext); return FOR; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 39 "Improved_scanner.l"
-{ printf("%s : RETURN\n", yytext); return RETURN; }
+#line 34 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : RETURN\n", yytext); return RETURN; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 40 "Improved_scanner.l"
-{ printf("%s : BREAK\n", yytext); return BREAK; }
+#line 35 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : BREAK\n", yytext); return BREAK; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 43 "Improved_scanner.l"
-{
-    printf("%s : PRINT\n", yytext);
-    return PRINT;
-}
+#line 38 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : PRINT\n", yytext); return PRINT; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 48 "Improved_scanner.l"
-{
-    printf("%s : IDENTIFIER\n", yytext);
-    yylval.str = strdup(yytext);
-    return ID;
-}
+#line 40 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : IDENTIFIER\n", yytext); yylval.str = strdup(yytext); return ID; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 54 "Improved_scanner.l"
-{
-    printf("%s : NUMBER\n", yytext);
-    yylval.num = atof(yytext);
-    return NUM;
-}
+#line 42 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : NUMBER\n", yytext); yylval.num = atof(yytext); return NUM; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 61 "Improved_scanner.l"
-{ printf("%s : OPEN_PAREN\n", yytext); return '('; }
+#line 45 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : OPEN_PAREN\n", yytext); return '('; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 62 "Improved_scanner.l"
-{ printf("%s : CLOSE_PAREN\n", yytext); return ')'; }
+#line 46 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : CLOSE_PAREN\n", yytext); return ')'; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 63 "Improved_scanner.l"
-{ printf("%s : OPEN_BRACKET\n", yytext); return '['; }
+#line 47 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : OPEN_BRACKET\n", yytext); return '['; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 64 "Improved_scanner.l"
-{ printf("%s : CLOSE_BRACKET\n", yytext); return ']'; }
+#line 48 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : CLOSE_BRACKET\n", yytext); return ']'; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 65 "Improved_scanner.l"
-{ printf("%s : OPEN_CURLY\n", yytext); return '{'; }
+#line 49 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : OPEN_CURLY\n", yytext); return '{'; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 66 "Improved_scanner.l"
-{ printf("%s : CLOSE_CURLY\n", yytext); return '}'; }
+#line 50 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : CLOSE_CURLY\n", yytext); return '}'; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 67 "Improved_scanner.l"
-{ printf("%s : COMMA\n", yytext); return ','; }
+#line 51 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : COMMA\n", yytext); return ','; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 68 "Improved_scanner.l"
-{ printf("%s : SEMICOLON\n", yytext); return ';'; }
+#line 52 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : SEMICOLON\n", yytext); return ';'; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 69 "Improved_scanner.l"
-{ printf("%s : ASSIGN\n", yytext); return '='; }
+#line 53 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : ASSIGN\n", yytext); return '='; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 71 "Improved_scanner.l"
-{ printf("%s : EQ\n", yytext); return EQ; }
+#line 55 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : EQ\n", yytext); return EQ; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 72 "Improved_scanner.l"
-{ printf("%s : NEQ\n", yytext); return NEQ; }
+#line 56 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : NEQ\n", yytext); return NEQ; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 73 "Improved_scanner.l"
-{ printf("%s : GE\n", yytext); return GE; }
+#line 57 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : GE\n", yytext); return GE; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 74 "Improved_scanner.l"
-{ printf("%s : LE\n", yytext); return LE; }
+#line 58 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : LE\n", yytext); return LE; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 75 "Improved_scanner.l"
-{ printf("%s : GT\n", yytext); return '>'; }
+#line 59 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : GT\n", yytext); return '>'; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 76 "Improved_scanner.l"
-{ printf("%s : LT\n", yytext); return '<'; }
+#line 60 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : LT\n", yytext); return '<'; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 77 "Improved_scanner.l"
-{ printf("%s : AND\n", yytext); return AND; }
+#line 61 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : AND\n", yytext); return AND; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 78 "Improved_scanner.l"
-{ printf("%s : OR\n", yytext); return OR; }
+#line 62 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : OR\n", yytext); return OR; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 79 "Improved_scanner.l"
-{ printf("%s : PLUS\n", yytext); return '+'; }
+#line 63 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : PLUS\n", yytext); return '+'; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 80 "Improved_scanner.l"
-{ printf("%s : MINUS\n", yytext); return '-'; }
+#line 64 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : MINUS\n", yytext); return '-'; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 81 "Improved_scanner.l"
-{ printf("%s : MUL\n", yytext); return '*'; }
+#line 65 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : MUL\n", yytext); return '*'; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 82 "Improved_scanner.l"
-{ printf("%s : DIV\n", yytext); return '/'; }
+#line 66 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : DIV\n", yytext); return '/'; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 83 "Improved_scanner.l"
-{ printf("%s : INC\n", yytext); return INC; }
+#line 67 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : INC\n", yytext); return INC; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 84 "Improved_scanner.l"
-{ printf("%s : DEC\n", yytext); return DEC; }
+#line 68 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : DEC\n", yytext); return DEC; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 85 "Improved_scanner.l"
-{ printf("%s : NOT\n", yytext); return '!'; }
+#line 69 "Improved_scanner.l"
+{ if (lex_debug) printf("%s : NOT\n", yytext); return '!'; }
 	YY_BREAK
 case 36:
 /* rule 36 can match eol */
 YY_RULE_SETUP
-#line 88 "Improved_scanner.l"
+#line 72 "Improved_scanner.l"
 { }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 91 "Improved_scanner.l"
-{
-    printf("Lexical Error: Unknown character '%c'\n", *yytext);
-}
+#line 75 "Improved_scanner.l"
+{ /* ignore unknown characters or handle errors quietly */ }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 95 "Improved_scanner.l"
+#line 77 "Improved_scanner.l"
 ECHO;
 	YY_BREAK
-#line 1011 "lex.yy.c"
+#line 993 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1976,7 +1958,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 95 "Improved_scanner.l"
+#line 77 "Improved_scanner.l"
 
 
 int yywrap() {

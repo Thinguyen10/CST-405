@@ -301,25 +301,29 @@ void generateMIPS(ASTNode* root, const char* filename) {
     fprintf(output, ".align 2\n");
     fprintf(output, ".globl main\n");
     fprintf(output, "main:\n");
-    // Allocate stack space first
-    fprintf(output, "    # Allocate stack space\n");
-    fprintf(output, "    addi $sp, $sp, -408  # 400 for vars + 8 for ra/fp\n");
+    /* Compute frame size from symbol table and allocate exact stack space */
+    int frameBytes = symtab.nextOffset + 8; /* space for saved ra/fp */
+    /* Align to 8 bytes for safety */
+    if (frameBytes % 8 != 0) frameBytes += 8 - (frameBytes % 8);
+    fprintf(output, "    # Allocate stack space (computed)\n");
+    fprintf(output, "    addi $sp, $sp, -%d\n", frameBytes);
     
-    // Then setup frame
+    /* Then setup frame: store ra/fp at the top of the frame */
     fprintf(output, "    # Setup stack frame\n");
-    fprintf(output, "    sw $ra, 404($sp)   # Save return address at the top\n");
-    fprintf(output, "    sw $fp, 400($sp)   # Save frame pointer below ra\n");
-    fprintf(output, "    move $fp, $sp      # Set up frame pointer\n\n");
+    fprintf(output, "    sw $ra, %d($sp)   # Save return address\n", frameBytes - 4);
+    fprintf(output, "    sw $fp, %d($sp)   # Save frame pointer\n", frameBytes - 8);
+    fprintf(output, "    addi $fp, $sp, %d   # Set frame pointer to old sp + frameBytes\n\n", frameBytes);
     
     // Generate code for statements
     genStmt(root);
     
     // Program exit
     fprintf(output, "\n    # Exit program\n");
-    fprintf(output, "    move $sp, $fp      # Restore stack pointer\n");
-    fprintf(output, "    lw $ra, 404($sp)   # Restore return address\n");
-    fprintf(output, "    lw $fp, 400($sp)   # Restore frame pointer\n");
-    fprintf(output, "    addi $sp, $sp, 408 # Deallocate stack space\n");
+    /* Restore frame and deallocate exact stack space */
+    fprintf(output, "    addi $sp, $fp, -%d    # Compute original sp from fp\n", frameBytes);
+    fprintf(output, "    lw $ra, %d($sp)   # Restore return address\n", frameBytes - 4);
+    fprintf(output, "    lw $fp, %d($sp)   # Restore frame pointer\n", frameBytes - 8);
+    fprintf(output, "    addi $sp, $sp, %d # Deallocate stack space\n", frameBytes);
     fprintf(output, "    li $v0, 10\n");
     fprintf(output, "    syscall\n");
     
