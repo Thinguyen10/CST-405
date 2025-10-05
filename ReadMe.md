@@ -329,6 +329,3 @@ cat output.s
 * Expand optimizer (dead-code elimination, loop unrolling).
 * Improve compiler diagnostics and AST visualization.
 
-```
-
----
