@@ -293,12 +293,21 @@ tempReg = 0;
 
 ## Build Instructions
 
+*Execute:
 ```bash
-bison -d parser.y
-flex lexer.l
-gcc -o compiler parser.tab.c lex.yy.c ast.c tac.c symtab.c codegen.c main.c -lm
-./compiler test.c
+Make clean && make &&  ./minicompiler test.c output.s
 ```
+
+*To Print result: 
+```bash
+spim output.s 
+```
+
+*To show assembly code: 
+```bash
+cat output.s
+```	
+
 
 ---
 
