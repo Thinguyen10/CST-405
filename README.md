@@ -320,12 +320,6 @@ cat output.s
 * MIPS code generation for arithmetic, control flow, and arrays.
 * Hash-based symbol table with array metadata tracking.
 
----
+## Credit
 
-## Next Steps
-
-* Implement user-defined functions and return handling.
-* Add TAC-level array indexing and propagation optimizations.
-* Expand optimizer (dead-code elimination, loop unrolling).
-* Improve compiler diagnostics and AST visualization.
-
+* The base compiler used for this project was originally developed by Professor Artzi.
