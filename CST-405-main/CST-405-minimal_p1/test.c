@@ -23,6 +23,10 @@ for (int j = 0; j < 3; j = j + 1) {
 int e = c - a;
 print(e);
 
+int arr[5];
+arr[0] = 10;
+arr[1] = 20;
+print(arr[0]);
 
 if (e > 0) {
     e = e + 10;

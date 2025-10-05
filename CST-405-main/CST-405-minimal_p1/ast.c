@@ -140,6 +140,33 @@ ASTNode* createReturn(ASTNode* expr) {
     return node;
 }
 
+ASTNode* createArrayDecl(char* name, ASTNode* size, ASTNode* init) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = NODE_ARRAY_DECL;
+    node->data.array_decl.name = strdup(name);
+    node->data.array_decl.size = size;
+    node->data.array_decl.init = init;
+    return node;
+}
+
+
+ASTNode* createArrayAccess(char* name, ASTNode* index) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = NODE_ARRAY_ACCESS;
+    node->data.array_access.name = strdup(name);
+    node->data.array_access.index = index;
+    return node;
+}
+
+ASTNode* createArrayAssign(char* name, ASTNode* index, ASTNode* value) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = NODE_ARRAY_ASSIGN;
+    node->data.array_assign.name = strdup(name);
+    node->data.array_assign.index = index;
+    node->data.array_assign.value = value;
+    return node;
+}
+ 
 /* Display AST (debugging) */
 void printAST(ASTNode* node, int level) {
     if (!node) return;
@@ -209,6 +236,20 @@ void printAST(ASTNode* node, int level) {
             printf("RETURN\n");
             printAST(node->data.ret_expr, level+1);
             break;
+            case NODE_ARRAY_DECL:
+                printf("ARRAY_DECL: %s\n", node->data.array_decl.name);
+                printAST(node->data.array_decl.size, level+1);
+                if (node->data.array_decl.init) printAST(node->data.array_decl.init, level+1);
+                break;
+            case NODE_ARRAY_ACCESS:
+                printf("ARRAY_ACCESS: %s\n", node->data.array_access.name);
+                printAST(node->data.array_access.index, level+1);
+                break;
+            case NODE_ARRAY_ASSIGN:
+                printf("ARRAY_ASSIGN: %s\n", node->data.array_assign.name);
+                printAST(node->data.array_assign.index, level+1);
+                printAST(node->data.array_assign.value, level+1);
+                break;
         default:
             printf("Unknown node type %d\n", node->type);
     }
