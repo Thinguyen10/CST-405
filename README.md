@@ -320,12 +320,4 @@ cat output.s
 * MIPS code generation for arithmetic, control flow, and arrays.
 * Hash-based symbol table with array metadata tracking.
 
----
-
-## Next Steps
-
-* Implement user-defined functions and return handling.
-* Add TAC-level array indexing and propagation optimizations.
-* Expand optimizer (dead-code elimination, loop unrolling).
-* Improve compiler diagnostics and AST visualization.
 
